@@ -3,6 +3,7 @@ from utils import load_class_names, output_boxes, draw_outputs, resize_image
 import cv2
 import numpy as np
 from yolov3 import YOLOv3Net
+import os
 import time
 # physical_devices = tf.config.experimental.list_physical_devices('GPU')
 # assert len(physical_devices) > 0, "Not enough GPU hardware devices available"
@@ -17,15 +18,15 @@ iou_threshold = 0.5
 confidence_threshold = 0.5
 cfgfile = 'cfg/yolov3.cfg'
 weightfile = 'weights/yolov3_weights.tf'
-image = "voiture"
-img_path = "./data/images/"
+# image_name = "voiture"
+img_path = "./data/images"
 
 
-def main(img_path, image):
+def main(img_path, image_name):
     model = YOLOv3Net(cfgfile,model_size,num_classes)
     model.load_weights(weightfile)
     class_names = load_class_names(class_name)
-    image = cv2.imread(img_path + "{}.jpg".format(image))
+    image = cv2.imread(os.path.join(img_path, "{}.jpg".format(image_name)))
     image = np.array(image)
     image = tf.expand_dims(image, 0)
     resized_frame = resize_image(image, (model_size[0],model_size[1]))
@@ -38,13 +39,19 @@ def main(img_path, image):
         confidence_threshold=confidence_threshold)
     image = np.squeeze(image)
     img = draw_outputs(image, boxes, scores, classes, nums, class_names)
-    win_name = 'Image detection'
+    # win_name = 'Image detection'
     # cv2.imshow(win_name, img)
     # time.sleep(20)
     # cv2.destroyAllWindows()
 
     #If you want to save the result, uncommnent the line below:
-    check = cv2.imwrite(img_path + '{}_yolo.jpg'.format(image), img)
-    print(check, img_path)
+    os.path.join(img_path, 'image_yolo.jpg')
+    cv2.imwrite(os.path.join(img_path, "{}_yolo.jpg".format(image_name)), img)
 
-main(img_path,image)
+
+main(img_path, image_name)
+
+
+
+
+

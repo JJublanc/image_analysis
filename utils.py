@@ -1,15 +1,20 @@
 import tensorflow as tf
 import numpy as np
 import cv2
+import time
+
 
 def non_max_suppression(inputs, model_size, max_output_size,
-                        max_output_size_per_class, iou_threshold, confidence_threshold):
+                        max_output_size_per_class, iou_threshold,
+                        confidence_threshold):
     bbox, confs, class_probs = tf.split(inputs, [4, 1, -1], axis=-1)
     bbox=bbox/model_size[0]
     scores = confs * class_probs
-    boxes, scores, classes, valid_detections = tf.image.combined_non_max_suppression(
+    boxes, scores, classes, valid_detections = \
+        tf.image.combined_non_max_suppression(
         boxes=tf.reshape(bbox, (tf.shape(bbox)[0], -1, 1, 4)),
-        scores=tf.reshape(scores, (tf.shape(scores)[0], -1, tf.shape(scores)[-1])),
+        scores=tf.reshape(scores, (tf.shape(scores)[0], -1,
+                                   tf.shape(scores)[-1])),
         max_output_size_per_class=max_output_size_per_class,
         max_total_size=max_output_size,
         iou_threshold=iou_threshold,
@@ -17,14 +22,17 @@ def non_max_suppression(inputs, model_size, max_output_size,
     )
     return boxes, scores, classes, valid_detections
 
+
 def resize_image(inputs, modelsize):
     inputs= tf.image.resize(inputs, modelsize)
     return inputs
+
 
 def load_class_names(file_name):
     with open(file_name, 'r') as f:
         class_names = f.read().splitlines()
     return class_names
+
 
 def output_boxes(inputs,model_size, max_output_size, max_output_size_per_class,
                  iou_threshold, confidence_threshold):
@@ -38,8 +46,8 @@ def output_boxes(inputs,model_size, max_output_size, max_output_size_per_class,
                         bottom_right_y, confidence, classes], axis=-1)
     boxes_dicts = non_max_suppression(inputs, model_size, max_output_size,
                                       max_output_size_per_class, iou_threshold, confidence_threshold)
-
     return boxes_dicts
+
 
 def draw_outputs(img, boxes, objectness, classes, nums, class_names):
     boxes, objectness, classes, nums = boxes[0], objectness[0], classes[0], nums[0]
@@ -51,4 +59,5 @@ def draw_outputs(img, boxes, objectness, classes, nums, class_names):
         img = cv2.putText(img, '{} {:.4f}'.format(
             class_names[int(classes[i])], objectness[i]),
                           (x1y1), cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 255), 2)
-        return img
+    return img
+
