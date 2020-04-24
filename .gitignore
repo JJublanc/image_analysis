@@ -1,3 +1,10 @@
+data/data_cards/test.record.zip
+data/data_cards/test_cards_label.csv
+data/data_cards/test_zipped.zip
+data/data_cards/train.record.zip
+data/data_cards/train_cards_label.csv.zip
+data/data_cards/train_zipped.zip
+
 test.ipynb
 test.py
 data/images/*
