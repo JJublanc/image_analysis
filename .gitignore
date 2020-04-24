@@ -1,3 +1,5 @@
+load_and_convert_weights/weights/*
+
 data/data_cards/test.record.zip
 data/data_cards/test_cards_label.csv
 data/data_cards/test_zipped.zip

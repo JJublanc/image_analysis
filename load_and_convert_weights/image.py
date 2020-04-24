@@ -2,9 +2,9 @@ import tensorflow as tf
 from utils import load_class_names, output_boxes, draw_outputs, resize_image
 import cv2
 import numpy as np
-from yolov3 import YOLOv3Net
+from load_and_convert_weights.yolov3 import YOLOv3Net
 import os
-import time
+
 # physical_devices = tf.config.experimental.list_physical_devices('GPU')
 # assert len(physical_devices) > 0, "Not enough GPU hardware devices available"
 

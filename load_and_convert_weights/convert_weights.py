@@ -1,6 +1,7 @@
 import numpy as np
-from yolov3 import YOLOv3Net
-from yolov3 import parse_cfg
+from load_and_convert_weights.yolov3 import YOLOv3Net
+from load_and_convert_weights.yolov3 import parse_cfg
+
 
 def load_weights(model, cfgfile, weightfile):
     fp = open(weightfile, "rb")
@@ -9,7 +10,7 @@ def load_weights(model, cfgfile, weightfile):
     blocks = parse_cfg(cfgfile)
 
     for i, block in enumerate(blocks[1:]):
-        if (block["type"] == "convolutional"):
+        if block["type"] == "convolutional":
             conv_layer = model.get_layer('conv_' + str(i))
             print("layer: ", i + 1, conv_layer)
             filters = conv_layer.filters
@@ -40,6 +41,7 @@ def load_weights(model, cfgfile, weightfile):
     assert len(fp.read()) == 0, 'failed to read all data'
     fp.close()
 
+
 def main():
     weightfile = "weights/yolov3.weights"
     cfgfile = "cfg/yolov3.cfg"
@@ -48,8 +50,8 @@ def main():
     model = YOLOv3Net(cfgfile,model_size,num_classes)
     load_weights(model,cfgfile,weightfile)
     try:
-        model.save_weights('weights/yolov3_weights.tf')
-        print('\nThe file \'yolov3_weights.tf\' has been saved successfully.')
+        model.save_weights('weights/yolov3_weights.h5')
+        print('\nThe file \'yolov3_weights.h5\' has been saved successfully.')
     except IOError:
         print("Couldn't write the file \'yolov3_weights.tf\'.")
 
