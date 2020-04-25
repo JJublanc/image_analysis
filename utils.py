@@ -73,3 +73,4 @@ def draw_outputs(img, boxes, objectness, classes, nums, class_names):
                           (x1y1), cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 255), 2)
     return img
 
+
