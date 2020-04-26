@@ -4,6 +4,8 @@ from tensorflow.keras import Input, Model
 from tensorflow.keras.layers import Lambda
 from yolo3.model import yolo_body, yolo_loss
 
+
+
 def get_classes(classes_path):
     '''loads the classes'''
     with open(classes_path) as f:
@@ -50,4 +52,42 @@ def create_model(input_shape, anchors, num_classes, load_pretrained=True, freeze
     model = Model([model_body.input, *y_true], model_loss)
 
     return model
+
+def main():
+
+    annotation_path = 'train.txt'
+    log_dir = 'logs/000/'
+    classes_path = 'data/data_cards/cards.names'
+    anchors_path = 'data/data_cards/yolo_anchors.txt'
+    class_names = get_classes(classes_path)
+    num_classes = len(class_names)
+    anchors = get_anchors(anchors_path)
+
+    val_split = 0.1
+
+    with open(annotation_path) as f:
+        lines = f.readlines()
+    np.random.seed(10101)
+    np.random.shuffle(lines)
+    np.random.seed(None)
+    num_val = int(len(lines)*val_split)
+    num_train = len(lines) - num_val
+
+    # Train with frozen layers first, to get a stable loss.
+    # Adjust num epochs to your dataset. This step is enough to obtain a not bad model.
+    if True:
+        model.compile(optimizer=Adam(lr=1e-3), loss={
+            # use custom yolo_loss Lambda layer.
+            'yolo_loss': lambda y_true, y_pred: y_pred})
+
+        batch_size = 32
+        print('Train on {} samples, val on {} samples, with batch size {}.'.format(num_train, num_val, batch_size))
+        model.fit_generator(data_generator_wrapper(lines[:num_train], batch_size, input_shape, anchors, num_classes),
+                steps_per_epoch=max(1, num_train//batch_size),
+                validation_data=data_generator_wrapper(lines[num_train:], batch_size, input_shape, anchors, num_classes),
+                validation_steps=max(1, num_val//batch_size),
+                epochs=50,
+                initial_epoch=0,
+                callbacks=[logging, checkpoint])
+        model.save_weights(log_dir + 'trained_weights_stage_1.h5')
 

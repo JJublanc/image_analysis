@@ -3,6 +3,7 @@ import numpy as np
 import cv2
 import time
 from functools import reduce
+import os
 
 def compose(*funcs):
     """Compose arbitrarily many functions, evaluated left to right.
@@ -44,6 +45,12 @@ def load_class_names(file_name):
     with open(file_name, 'r') as f:
         class_names = f.read().splitlines()
     return class_names
+
+def create_anotation_txt(path, data_kind):
+
+    list_dir = os.listdir(path+data_kind)
+    with open("data/data_cards/annotation_{}.txt".format(data_kind), "w") as f:
+        f.write(" ".join([x for x in list_dir if "jpg" in x]))
 
 
 def output_boxes(inputs,model_size, max_output_size, max_output_size_per_class,

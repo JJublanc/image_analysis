@@ -1,7 +1,5 @@
 from functools import wraps
 import numpy as np
-
-import numpy as np
 import tensorflow as tf
 from tensorflow.keras import backend as K
 from tensorflow.keras.layers import Conv2D, Add, ZeroPadding2D, UpSampling2D, Concatenate, MaxPooling2D
@@ -10,8 +8,6 @@ from tensorflow.keras.layers import BatchNormalization
 from tensorflow.keras.models import Model
 from tensorflow.keras.regularizers import l2
 from utils import load_class_names
-from utils import
-
 from utils import compose
 import os
 import pandas as pd
@@ -20,20 +16,31 @@ import zipfile
 from train import get_anchors
 
 def unzip_data(data_kind="test"):
-    if (data_kind in os.listdir("data/data_cards/")) &\
-       (len(os.listdir("data/data_cards/{}".format(data_kind))) != 0):
+
+    directory_to_extract_to = "data/data_cards/{}".format(data_kind)
+    path_to_zip_file = "data/data_cards/{}_zipped.zip".format(data_kind)
+    try:
+        os.mkdir(directory_to_extract_to)
+    except:
+        print("diretory already exists")
+        pass
+
+    if len(os.listdir("data/data_cards/{}".format(data_kind))) != 0:
         print("{} data are already unzipped".format(data_kind))
     else:
-        path_to_zip_file = "data/data_cards/{}_zipped.zip".format(data_kind)
         directory_to_extract_to = "data/data_cards/{}".format(data_kind)
+        path_to_zip_file = "data/data_cards/{}_zipped.zip".format(data_kind)
+
         with zipfile.ZipFile(path_to_zip_file, 'r') as zip_ref:
             zip_ref.extractall(directory_to_extract_to)
+
 
 
 def get_card_num(card):
     cards = load_class_names("data/data_cards/cards.names")
     cards_serie = pd.Series(cards)
     return cards_serie[cards_serie==card].index[0]
+
 
 def resize_boxes_limits(x_min, y_min, x_max, y_max, origin, destination):
     return x_min*destination[0]//origin[0],\
