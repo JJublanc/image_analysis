@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import tensorflow.keras.backend as K
 from tensorflow.keras import Input, Model
@@ -56,7 +57,7 @@ def create_model(input_shape, anchors, num_classes, load_pretrained=True, freeze
                                    'ignore_thresh': 0.5})(
                         [*model_body.output, *y_true])
     model = Model([model_body.input, *y_true], model_loss)
-    print(model.summary())
+    # print(model.summary())
     return model
 
 
@@ -67,12 +68,11 @@ def rand(a=0, b=1):
 def get_random_data(annotation_line, input_shape, random=True,
                     max_boxes=20, jitter=.3, hue=.1, sat=1.5, val=1.5, proc_img=True):
     '''random preprocessing for real-time data augmentation'''
-    # line = annotation_line.split()
-    line = ["data/data_cards/" + annotation_line[0]]
-    image = Image.open(line[0])
+    annotation_line = annotation_line.split(" ")
+    image = Image.open(annotation_line[0])
     iw, ih = image.size
     h, w = input_shape
-    box = np.array([np.array(list(map(int, box.split(',')))) for box in line[1:]])
+    box = np.array([np.array(list(map(int, box.split(',')))) for box in annotation_line[1:]])
 
     if not random:
         # resize image
@@ -193,7 +193,8 @@ def main(data_kind):
 
     with open(annotation_path) as f:
         lines = f.readlines()
-    lines = lines[0].split(" ")
+    # print("lines:", lines[:4])
+    # lines = lines[0].split(" ")
     np.random.seed(10101)
     np.random.shuffle(lines)
     np.random.seed(None)
@@ -228,5 +229,6 @@ def main(data_kind):
 
 
 if __name__=="__main__":
-    data_kind = sys.argv[1]
+    # data_kind = sys.argv[1]
+    data_kind="test"
     main(data_kind)

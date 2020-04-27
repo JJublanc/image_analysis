@@ -8,9 +8,11 @@ data/data_cards/train.record.zip
 data/data_cards/train_cards_label.csv.zip
 data/data_cards/train_zipped.zip
 
+
 test.ipynb
 test.py
 data/images/*
+data/images_test/*
 .idea/
 .ipynb_checkpoints/
 __pycache__/

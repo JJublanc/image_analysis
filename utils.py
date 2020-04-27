@@ -66,7 +66,7 @@ def create_annotation_txt(data_frame, path):
                                                "class_num"]].values), axis=1)
 
     df_grouped = df[["filename", "box"]].groupby("filename") \
-        .agg(lambda x: "   ".join(x)) \
+        .agg(lambda x: " ".join(x)) \
         .reset_index()
     df_grouped["final_box"] = df_grouped["filename"] + " " + df_grouped["box"]
 
