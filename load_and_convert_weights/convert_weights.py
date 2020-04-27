@@ -46,7 +46,7 @@ def main():
     weightfile = "weights/yolov3.weights"
     cfgfile = "cfg/yolov3.cfg"
     model_size = (416, 416, 3)
-    num_classes = 80
+    num_classes = 52
     model = YOLOv3Net(cfgfile,model_size,num_classes)
     load_weights(model,cfgfile,weightfile)
     try:

@@ -1,14 +1,17 @@
 import os
+import sys
+
 import numpy as np
+
 import tensorflow.keras.backend as K
 from tensorflow.keras import Input, Model
 from tensorflow.keras.layers import Lambda
 from tensorflow.keras.optimizers import Adam
-import tensorflow.keras.backend as K
+
 from process_images import preprocess_true_boxes
 from PIL import Image
 from matplotlib.colors import rgb_to_hsv, hsv_to_rgb
-import sys
+
 from yolo3.model import yolo_body, yolo_loss
 
 
