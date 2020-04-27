@@ -5,6 +5,7 @@ import time
 from functools import reduce
 import os
 
+
 def compose(*funcs):
     """Compose arbitrarily many functions, evaluated left to right.
     Reference: https://mathieularose.com/function-composition-in-python/
@@ -14,7 +15,6 @@ def compose(*funcs):
         return reduce(lambda f, g: lambda *a, **kw: g(f(*a, **kw)), funcs)
     else:
         raise ValueError('Composition of empty sequence not supported.')
-
 
 
 def non_max_suppression(inputs, model_size, max_output_size,
@@ -46,11 +46,31 @@ def load_class_names(file_name):
         class_names = f.read().splitlines()
     return class_names
 
-def create_anotation_txt(path, data_kind):
 
-    list_dir = os.listdir(path+data_kind)
-    with open("data/data_cards/annotation_{}.txt".format(data_kind), "w") as f:
-        f.write(" ".join([x for x in list_dir if "jpg" in x]))
+def create_annotation_txt(data_frame, path):
+    df = data_frame.copy()
+    df["filename"] = path + df["filename"]
+    df[['x_min_resized',
+        'y_min_resized',
+        'x_max_resized',
+        'y_max_resized', "class_num"]] = df[['x_min_resized',
+                                             'y_min_resized',
+                                             'x_max_resized',
+                                             'y_max_resized',
+                                             "class_num"]].astype(str)
+
+    df["box"] = df.apply(lambda x: ",".join(x[['x_min_resized',
+                                               'y_min_resized',
+                                               'x_max_resized',
+                                               'y_max_resized',
+                                               "class_num"]].values), axis=1)
+
+    df_grouped = df[["filename", "box"]].groupby("filename") \
+        .agg(lambda x: "   ".join(x)) \
+        .reset_index()
+    df_grouped["final_box"] = df_grouped["filename"] + " " + df_grouped["box"]
+
+    return df_grouped["final_box"]
 
 
 def output_boxes(inputs,model_size, max_output_size, max_output_size_per_class,

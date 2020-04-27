@@ -13,7 +13,6 @@ import os
 import pandas as pd
 import zipfile
 
-from train import get_anchors
 
 def unzip_data(data_kind="test"):
 

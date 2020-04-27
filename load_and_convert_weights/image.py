@@ -19,7 +19,7 @@ confidence_threshold = 0.5
 cfgfile = 'cfg/yolov3.cfg'
 weightfile = 'weights/yolov3_weights.tf'
 # image_name = "voiture"
-img_path = "./data/images"
+img_path = "./data/images_test"
 
 
 def main(img_path, image_name):
