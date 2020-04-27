@@ -16,13 +16,16 @@ that will help to generalize.
 # Steps to reproduce the project
 ## 0- Requirements
 
-Make sure requirements are fullfiled
+Make sure requirements are fullfiled doing `pip install -r requirements.txt`
+
 ## 1- Download model weights and transform it to H5 format
 ### 1-1 Download weights
 The weight are available [here](https://pjreddie.com/media/files/yolov3.weights) 
-(**carefull: if you clik, it'll launch the download !!**). The weights are taking around 250Mo
+(**carefull: click will launch download !!**). The weights are taking around 250Mo
 
 Put the weight here: `load_and_convert_weights/weights` 
+
+*_Documentation on Yolov3 model is accessible [here](https://machinelearningspace.com/yolov3-tensorflow-2-part-2/)_*
 
 ### 1-2 Convert model to h5
 
@@ -31,14 +34,13 @@ This will save the weights under `load_and_convert_weights/weights/yolov3_weight
 
 
 ## 2- Download and prepare data
-[Data](https://www.kaggle.com/hugopaigneau/playing-cards-dataset#train.record
-) are to be loaded in the following folder: `data/data_cards`. Make sure you download both csv label files and 
-zipped file
+[Data](https://www.kaggle.com/hugopaigneau/playing-cards-dataset) are to be loaded in the following folder: `data/data_cards`. Make sure you download both csv label files and zipped file
 
-Then, by launching in terminal `python script_unzip_and_process_images.py train` &
-`python script_unzip_and_process_images.py test`, files will be unzipped in subfolders `train` and `test`.
+(Reminder: you can download using kaggle api: `kaggle datasets dowload -d hugopaigneau/playing-ca`)
 
-Those two folders contain jpg and xml files.
+Then, by launching in terminal `python script_unzip_and_process_images.py`, files will be unzipped in subfolders `train` and `test`.Those two folders contain jpg and xml files.
+
+Also the original zip file is deleted during the operation
 
 Also, the script will create `annotation_test.txt` and `annotation_train.txt`, that is formatting the boxes
 correctly.
@@ -54,7 +56,7 @@ to format (416, 416). Boxes are also resized to fit with the new images format.
 
 # Référence
 
-* https://www.kaggle.com/hugopaigneau/playing-cards-dataset
+* https://kaggle.com/hugopaigneau/playing-cards-dataset
 * https://machinelearningspace.com/yolov3-tensorflow-2-part-2/
 * https://github.com/qqwweee/keras-yolo3/tree/e6598d13c703029b2686bc2eb8d5c09badf42992
 * https://pjreddie.com/media/files/yolov3.weights
