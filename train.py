@@ -1,18 +1,14 @@
 import os
-import sys
-
 import numpy as np
-
-import tensorflow as tf
 import tensorflow.keras.backend as K
 from tensorflow.keras import Input, Model
 from tensorflow.keras.layers import Lambda
 from tensorflow.keras.optimizers import Adam
-
+import tensorflow.keras.backend as K
 from process_images import preprocess_true_boxes
 from PIL import Image
 from matplotlib.colors import rgb_to_hsv, hsv_to_rgb
-
+import sys
 from yolo3.model import yolo_body, yolo_loss
 
 
@@ -44,7 +40,7 @@ def create_model(input_shape, anchors, num_classes, load_pretrained=True, freeze
 
     model_body = yolo_body(image_input, num_anchors // 3, num_classes)
     print('Create YOLOv3 model with {} anchors and {} classes.'.format(num_anchors, num_classes))
-    #print(model_body.summary())
+    # print(model_body.summary())
 
     if load_pretrained:
         model_body.load_weights(weights_path, by_name=True, skip_mismatch=True)
@@ -59,14 +55,14 @@ def create_model(input_shape, anchors, num_classes, load_pretrained=True, freeze
                         arguments={'anchors': anchors,
                                    'num_classes': num_classes,
                                    'ignore_thresh': 0.5})(
-                        [*model_body.output, *y_true])
+        [*model_body.output, *y_true])
     model = Model([model_body.input, *y_true], model_loss)
     # print(model.summary())
     return model
 
 
 def rand(a=0, b=1):
-    return np.random.rand()*(b-a) + a
+    return np.random.rand() * (b - a) + a
 
 
 def get_random_data(annotation_line, input_shape, random=True,
@@ -80,79 +76,79 @@ def get_random_data(annotation_line, input_shape, random=True,
 
     if not random:
         # resize image
-        scale = min(w/iw, h/ih)
-        nw = int(iw*scale)
-        nh = int(ih*scale)
-        dx = (w-nw)//2
-        dy = (h-nh)//2
-        image_data=0
+        scale = min(w / iw, h / ih)
+        nw = int(iw * scale)
+        nh = int(ih * scale)
+        dx = (w - nw) // 2
+        dy = (h - nh) // 2
+        image_data = 0
         if proc_img:
-            image = image.resize((nw,nh), Image.BICUBIC)
-            new_image = Image.new('RGB', (w,h), (128,128,128))
+            image = image.resize((nw, nh), Image.BICUBIC)
+            new_image = Image.new('RGB', (w, h), (128, 128, 128))
             new_image.paste(image, (dx, dy))
-            image_data = np.array(new_image)/255.
+            image_data = np.array(new_image) / 255.
 
         # correct boxes
-        box_data = np.zeros((max_boxes,5))
-        if len(box)>0:
+        box_data = np.zeros((max_boxes, 5))
+        if len(box) > 0:
             np.random.shuffle(box)
-            if len(box)>max_boxes: box = box[:max_boxes]
-            box[:, [0,2]] = box[:, [0,2]]*scale + dx
-            box[:, [1,3]] = box[:, [1,3]]*scale + dy
+            if len(box) > max_boxes: box = box[:max_boxes]
+            box[:, [0, 2]] = box[:, [0, 2]] * scale + dx
+            box[:, [1, 3]] = box[:, [1, 3]] * scale + dy
             box_data[:len(box)] = box
 
         return image_data, box_data
 
     # resize image
-    new_ar = w/h * rand(1-jitter,1+jitter)/rand(1-jitter,1+jitter)
+    new_ar = w / h * rand(1 - jitter, 1 + jitter) / rand(1 - jitter, 1 + jitter)
     scale = rand(.25, 2)
     if new_ar < 1:
-        nh = int(scale*h)
-        nw = int(nh*new_ar)
+        nh = int(scale * h)
+        nw = int(nh * new_ar)
     else:
-        nw = int(scale*w)
-        nh = int(nw/new_ar)
-    image = image.resize((nw,nh), Image.BICUBIC)
+        nw = int(scale * w)
+        nh = int(nw / new_ar)
+    image = image.resize((nw, nh), Image.BICUBIC)
 
     # place image
-    dx = int(rand(0, w-nw))
-    dy = int(rand(0, h-nh))
-    new_image = Image.new('RGB', (w,h), (128,128,128))
+    dx = int(rand(0, w - nw))
+    dy = int(rand(0, h - nh))
+    new_image = Image.new('RGB', (w, h), (128, 128, 128))
     new_image.paste(image, (dx, dy))
     image = new_image
 
     # flip image or not
-    flip = rand()<.5
+    flip = rand() < .5
     if flip: image = image.transpose(Image.FLIP_LEFT_RIGHT)
 
     # distort image
     hue = rand(-hue, hue)
-    sat = rand(1, sat) if rand()<.5 else 1/rand(1, sat)
-    val = rand(1, val) if rand()<.5 else 1/rand(1, val)
-    x = rgb_to_hsv(np.array(image)/255.)
+    sat = rand(1, sat) if rand() < .5 else 1 / rand(1, sat)
+    val = rand(1, val) if rand() < .5 else 1 / rand(1, val)
+    x = rgb_to_hsv(np.array(image) / 255.)
     x[..., 0] += hue
-    x[..., 0][x[..., 0]>1] -= 1
-    x[..., 0][x[..., 0]<0] += 1
+    x[..., 0][x[..., 0] > 1] -= 1
+    x[..., 0][x[..., 0] < 0] += 1
     x[..., 1] *= sat
     x[..., 2] *= val
-    x[x>1] = 1
-    x[x<0] = 0
-    image_data = hsv_to_rgb(x) # numpy array, 0 to 1
+    x[x > 1] = 1
+    x[x < 0] = 0
+    image_data = hsv_to_rgb(x)  # numpy array, 0 to 1
 
     # correct boxes
-    box_data = np.zeros((max_boxes,5))
-    if len(box)>0:
+    box_data = np.zeros((max_boxes, 5))
+    if len(box) > 0:
         np.random.shuffle(box)
-        box[:, [0,2]] = box[:, [0,2]]*nw/iw + dx
-        box[:, [1,3]] = box[:, [1,3]]*nh/ih + dy
-        if flip: box[:, [0,2]] = w - box[:, [2,0]]
-        box[:, 0:2][box[:, 0:2]<0] = 0
-        box[:, 2][box[:, 2]>w] = w
-        box[:, 3][box[:, 3]>h] = h
+        box[:, [0, 2]] = box[:, [0, 2]] * nw / iw + dx
+        box[:, [1, 3]] = box[:, [1, 3]] * nh / ih + dy
+        if flip: box[:, [0, 2]] = w - box[:, [2, 0]]
+        box[:, 0:2][box[:, 0:2] < 0] = 0
+        box[:, 2][box[:, 2] > w] = w
+        box[:, 3][box[:, 3] > h] = h
         box_w = box[:, 2] - box[:, 0]
         box_h = box[:, 3] - box[:, 1]
-        box = box[np.logical_and(box_w>1, box_h>1)] # discard invalid box
-        if len(box)>max_boxes: box = box[:max_boxes]
+        box = box[np.logical_and(box_w > 1, box_h > 1)]  # discard invalid box
+        if len(box) > max_boxes: box = box[:max_boxes]
         box_data[:len(box)] = box
 
     return image_data, box_data
@@ -184,16 +180,10 @@ def data_generator_wrapper(annotation_lines, batch_size, input_shape, anchors, n
     return data_generator(annotation_lines, batch_size, input_shape, anchors, num_classes)
 
 
-def main(data_kind):
-    
-    tfconfig = tf.compat.v1.ConfigProto()
-    tfconfig.gpu_options.per_process_gpu_memory_fraction = 0.5
-    tfconfig.log_device_placement=True
-    tfconfig.gpu_options.allow_growth=True
-    tensor=tf.compat.v1.enable_eager_execution(config=tfconfig)
-    
+def main(data_kind, nb_epochs_1, nb_epochs_2):
     annotation_path = 'data/data_cards/annotation_{}.txt'.format(data_kind)
-    log_dir = 'logs/000/'
+    print(annotation_path)
+    log_dir = 'load_and_convert_weights/weights/'
     classes_path = 'data/data_cards/cards.names'
     anchors_path = 'data/data_cards/yolo_anchors.txt'
     class_names = get_classes(classes_path)
@@ -209,8 +199,11 @@ def main(data_kind):
     np.random.seed(10101)
     np.random.shuffle(lines)
     np.random.seed(None)
+
     num_val = int(len(lines) * val_split)
+    print("num lignes dans le fichier annotations small",len(lines))
     num_train = len(lines) - num_val
+    print(num_train)
     input_shape = (416, 416)
 
     # Create model
@@ -232,14 +225,36 @@ def main(data_kind):
                             validation_data=data_generator_wrapper(lines[num_train:], batch_size, input_shape, anchors,
                                                                    num_classes),
                             validation_steps=max(1, num_val // batch_size),
-                            epochs=50,
+                            epochs=nb_epochs_1,
                             initial_epoch=0,
-                            #callbacks=[logging, checkpoint]
+                            # callbacks=[logging, checkpoint]
                             )
-        model.save_weights(log_dir + 'trained_weights_stage_1.h5')
+        model.save_weights(log_dir + 'yolov3_weights_{}_stage_1.h5'.format(data_kind))
+
+    train_some_additionnal_layers = False
+    if train_some_additionnal_layers:
+        for i in range(len(model.layers)):
+            model.layers[i].trainable = True
+            model.compile(optimizer=Adam(lr=1e-4),
+                          loss={'yolo_loss': lambda y_true, y_pred: y_pred})  # recompile to apply the change
+            print('Unfreeze all of the layers.')
+
+            batch_size = 32  # note that more GPU memory is required after unfreezing the body
+            print('Train on {} samples, val on {} samples, with batch size {}.'.format(num_train, num_val, batch_size))
+            model.fit_generator(
+                data_generator_wrapper(lines[:num_train], batch_size, input_shape, anchors, num_classes),
+                steps_per_epoch=max(1, num_train // batch_size),
+                validation_data=data_generator_wrapper(lines[num_train:], batch_size, input_shape, anchors,
+                                                       num_classes),
+                validation_steps=max(1, num_val // batch_size),
+                epochs=nb_epochs_2,
+                initial_epoch=nb_epochs_1)
+            # callbacks=[logging, checkpoint, reduce_lr, early_stopping])
+            model.save_weights(log_dir + 'yolov3_weights_{}_stage_{}.h5'.format(data_kind, i + 2))
 
 
-if __name__=="__main__":
-    # data_kind = sys.argv[1]
-    data_kind="test"
-    main(data_kind)
+if __name__ == "__main__":
+    data_kind = sys.argv[1]
+    nb_epochs_1 = int(sys.argv[2])
+    nb_epochs_2 = int(sys.argv[3])
+    main(data_kind, nb_epochs_1, nb_epochs_2)

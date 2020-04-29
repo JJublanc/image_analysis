@@ -1,25 +1,28 @@
 import tensorflow as tf
+import sys
+sys.path.append("../")
 from utils import load_class_names, output_boxes, draw_outputs, resize_image
 import cv2
 import numpy as np
-from load_and_convert_weights.yolov3 import YOLOv3Net
+from yolov3 import YOLOv3Net
 import os
 
+print(os.listdir())
 # physical_devices = tf.config.experimental.list_physical_devices('GPU')
 # assert len(physical_devices) > 0, "Not enough GPU hardware devices available"
 
 # tf.config.experimental.set_memory_growth(physical_devices[0], True)
 model_size = (416, 416,3)
 num_classes = 80
-class_name = './data/coco.names'
+class_name = './data/data_cards/cards.names'
 max_output_size = 40
 max_output_size_per_class= 20
 iou_threshold = 0.5
 confidence_threshold = 0.5
-cfgfile = 'cfg/yolov3.cfg'
-weightfile = 'weights/yolov3_weights.tf'
-# image_name = "voiture"
-img_path = "./data/images_test"
+cfgfile = './load_and_convert_weights/cfg/yolov3.cfg'
+weightfile = './load_and_convert_weights/weights/yolov3_weights.h5'
+image_name = "car"
+img_path = "./data/random_images"
 
 
 def main(img_path, image_name):
@@ -45,7 +48,6 @@ def main(img_path, image_name):
     # cv2.destroyAllWindows()
 
     #If you want to save the result, uncommnent the line below:
-    os.path.join(img_path, 'image_yolo.jpg')
     cv2.imwrite(os.path.join(img_path, "{}_yolo.jpg".format(image_name)), img)
 
 

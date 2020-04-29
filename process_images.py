@@ -75,11 +75,11 @@ def resize_and_add_class_num(df):
 
 
 def save_csv_resized_class_num(data_kind):
-    df = pd.read_csv("data/data_cards/{}_cards_label.csv".format(data_kind), nrows=5)
+    df = pd.read_csv("./data/data_cards/{}_cards_label.csv".format(data_kind), nrows=5)
     if len(df.columns) < 13:
-        df = pd.read_csv("data/data_cards/{}_cards_label.csv".format(data_kind))
+        df = pd.read_csv("./data/data_cards/{}_cards_label.csv".format(data_kind))
         df = resize_and_add_class_num(df)
-        df.to_csv("data/data_cards/{}_cards_label.csv".format(data_kind))
+        df.to_csv("./data/data_cards/{}_cards_label.csv".format(data_kind))
 
 
 def preprocess_true_boxes(true_boxes, input_shape, anchors, num_classes):
