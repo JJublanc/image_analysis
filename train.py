@@ -3,6 +3,7 @@ import sys
 
 import numpy as np
 
+import tensorflow as tf
 import tensorflow.keras.backend as K
 from tensorflow.keras import Input, Model
 from tensorflow.keras.layers import Lambda
@@ -184,6 +185,13 @@ def data_generator_wrapper(annotation_lines, batch_size, input_shape, anchors, n
 
 
 def main(data_kind):
+    
+    tfconfig = tf.compat.v1.ConfigProto()
+    tfconfig.gpu_options.per_process_gpu_memory_fraction = 0.5
+    tfconfig.log_device_placement=True
+    tfconfig.gpu_options.allow_growth=True
+    tensor=tf.compat.v1.enable_eager_execution(config=tfconfig)
+    
     annotation_path = 'data/data_cards/annotation_{}.txt'.format(data_kind)
     log_dir = 'logs/000/'
     classes_path = 'data/data_cards/cards.names'

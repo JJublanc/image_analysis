@@ -13,6 +13,14 @@ import os
 import pandas as pd
 import zipfile
 
+def unzip_folder():
+    directory_to_extract_to = "data/data_cards"
+    path_to_zip_file = "data/data_cards/playing-cards-dataset.zip"
+    with zipfile.ZipFile(path_to_zip_file, 'r') as zip_ref:
+        zip_ref.extractall(directory_to_extract_to)
+    os.rename("data/data_cards/train_zipped", "data/data_cards/train")
+    os.rename("data/data_cards/test_zipped", "data/data_cards/test")
+    os.remove("data/data_cards/playing-cards-dataset.zip")
 
 def unzip_data(data_kind="test"):
 

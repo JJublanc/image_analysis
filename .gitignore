@@ -1,3 +1,5 @@
+script_test_build_model.py
+
 data/data_cards/train_cards_label.csv
 load_and_convert_weights/weights/*
 data/data_cards/annotation*.txt
