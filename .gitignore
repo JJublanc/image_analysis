@@ -1,14 +1,27 @@
+test.ipynb
+
+data/cards/small/
+data/cards/test/
+data/cards/train/
+data/random_images/car.jpg
+data/random_images/car_yolo.jpg
+data/random_images/card_random.jpg
+data/random_images/card_random_yolo.jpg
+load_and_convert_weights/__init__.py
+
+
+
 script_test_build_model.py
 
-data/data_cards/train_cards_label.csv
+data/cards/train_cards_label.csv
 load_and_convert_weights/weights/*
-data/data_cards/annotation*.txt
-data/data_cards/test.record.zip
-data/data_cards/test_cards_label.csv
-data/data_cards/test_zipped.zip
-data/data_cards/train.record.zip
-data/data_cards/train_cards_label.csv.zip
-data/data_cards/train_zipped.zip
+data/cards/annotation*.txt
+data/cards/test.record.zip
+data/cards/test_cards_label.csv
+data/cards/test_zipped.zip
+data/cards/train.record.zip
+data/cards/train_cards_label.csv.zip
+data/cards/train_zipped.zip
 
 
 test.ipynb

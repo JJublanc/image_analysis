@@ -1,15 +1,13 @@
-import os
 import numpy as np
-import tensorflow.keras.backend as K
 from tensorflow.keras import Input, Model
 from tensorflow.keras.layers import Lambda
 from tensorflow.keras.optimizers import Adam
 import tensorflow.keras.backend as K
-from process_images import preprocess_true_boxes
 from PIL import Image
 from matplotlib.colors import rgb_to_hsv, hsv_to_rgb
-import sys
-from yolo3.model import yolo_body, yolo_loss
+from src.model_core import yolo_body, yolo_loss
+from src.utils import get_initial_stage_and_epoch
+from src.process_images import preprocess_true_boxes
 
 
 def get_classes(classes_path):
@@ -40,7 +38,6 @@ def create_model(input_shape, anchors, num_classes, load_pretrained=True, freeze
 
     model_body = yolo_body(image_input, num_anchors // 3, num_classes)
     print('Create YOLOv3 model with {} anchors and {} classes.'.format(num_anchors, num_classes))
-    # print(model_body.summary())
 
     if load_pretrained:
         model_body.load_weights(weights_path, by_name=True, skip_mismatch=True)
@@ -57,7 +54,7 @@ def create_model(input_shape, anchors, num_classes, load_pretrained=True, freeze
                                    'ignore_thresh': 0.5})(
         [*model_body.output, *y_true])
     model = Model([model_body.input, *y_true], model_loss)
-    # print(model.summary())
+    print(model.summary())
     return model
 
 
@@ -178,83 +175,3 @@ def data_generator_wrapper(annotation_lines, batch_size, input_shape, anchors, n
     n = len(annotation_lines)
     if n == 0 or batch_size <= 0: return None
     return data_generator(annotation_lines, batch_size, input_shape, anchors, num_classes)
-
-
-def main(data_kind, nb_epochs_1, nb_epochs_2):
-    annotation_path = 'data/data_cards/annotation_{}.txt'.format(data_kind)
-    print(annotation_path)
-    log_dir = 'load_and_convert_weights/weights/'
-    classes_path = 'data/data_cards/cards.names'
-    anchors_path = 'data/data_cards/yolo_anchors.txt'
-    class_names = get_classes(classes_path)
-    num_classes = len(class_names)
-    anchors = get_anchors(anchors_path)
-
-    val_split = 0.1
-
-    with open(annotation_path) as f:
-        lines = f.readlines()
-    # print("lines:", lines[:4])
-    # lines = lines[0].split(" ")
-    np.random.seed(10101)
-    np.random.shuffle(lines)
-    np.random.seed(None)
-
-    num_val = int(len(lines) * val_split)
-    print("num lignes dans le fichier annotations small",len(lines))
-    num_train = len(lines) - num_val
-    print(num_train)
-    input_shape = (416, 416)
-
-    # Create model
-    model = create_model(input_shape, anchors, num_classes,
-                         freeze_body=2, weights_path='./load_and_convert_weights/weights/yolov3_weights.h5')
-
-    train_last_layer_only = True
-    # Train with frozen layers first, to get a stable loss.
-    # Adjust num epochs to your dataset. This step is enough to obtain a not bad model.
-    if train_last_layer_only:
-        model.compile(optimizer=Adam(lr=1e-3), loss={
-            # use custom yolo_loss Lambda layer.
-            'yolo_loss': lambda y_true, y_pred: y_pred})
-
-        batch_size = 32
-        print('Train on {} samples, val on {} samples, with batch size {}.'.format(num_train, num_val, batch_size))
-        model.fit_generator(data_generator_wrapper(lines[:num_train], batch_size, input_shape, anchors, num_classes),
-                            steps_per_epoch=max(1, num_train // batch_size),
-                            validation_data=data_generator_wrapper(lines[num_train:], batch_size, input_shape, anchors,
-                                                                   num_classes),
-                            validation_steps=max(1, num_val // batch_size),
-                            epochs=nb_epochs_1,
-                            initial_epoch=0,
-                            # callbacks=[logging, checkpoint]
-                            )
-        model.save_weights(log_dir + 'yolov3_weights_{}_stage_1.h5'.format(data_kind))
-
-    train_some_additionnal_layers = False
-    if train_some_additionnal_layers:
-        for i in range(len(model.layers)):
-            model.layers[i].trainable = True
-            model.compile(optimizer=Adam(lr=1e-4),
-                          loss={'yolo_loss': lambda y_true, y_pred: y_pred})  # recompile to apply the change
-            print('Unfreeze all of the layers.')
-
-            batch_size = 32  # note that more GPU memory is required after unfreezing the body
-            print('Train on {} samples, val on {} samples, with batch size {}.'.format(num_train, num_val, batch_size))
-            model.fit_generator(
-                data_generator_wrapper(lines[:num_train], batch_size, input_shape, anchors, num_classes),
-                steps_per_epoch=max(1, num_train // batch_size),
-                validation_data=data_generator_wrapper(lines[num_train:], batch_size, input_shape, anchors,
-                                                       num_classes),
-                validation_steps=max(1, num_val // batch_size),
-                epochs=nb_epochs_2,
-                initial_epoch=nb_epochs_1)
-            # callbacks=[logging, checkpoint, reduce_lr, early_stopping])
-            model.save_weights(log_dir + 'yolov3_weights_{}_stage_{}.h5'.format(data_kind, i + 2))
-
-
-if __name__ == "__main__":
-    data_kind = sys.argv[1]
-    nb_epochs_1 = int(sys.argv[2])
-    nb_epochs_2 = int(sys.argv[3])
-    main(data_kind, nb_epochs_1, nb_epochs_2)

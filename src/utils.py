@@ -1,0 +1,137 @@
+import tensorflow as tf
+import numpy as np
+import cv2
+from functools import reduce
+from PIL import Image
+
+
+def compose(*funcs):
+    """Compose arbitrarily many functions, evaluated left to right.
+    Reference: https://mathieularose.com/function-composition-in-python/
+    """
+    # return lambda x: reduce(lambda v, f: f(v), funcs, x)
+    if funcs:
+        return reduce(lambda f, g: lambda *a, **kw: g(f(*a, **kw)), funcs)
+    else:
+        raise ValueError('Composition of empty sequence not supported.')
+
+
+def letterbox_image(image, size):
+    '''resize image with unchanged aspect ratio using padding'''
+    iw, ih = image.size
+    w, h = size
+    scale = min(w / iw, h / ih)
+    nw = int(iw * scale)
+    nh = int(ih * scale)
+
+    image = image.resize((nw, nh), Image.BICUBIC)
+    new_image = Image.new('RGB', size, (128, 128, 128))
+    new_image.paste(image, ((w - nw) // 2, (h - nh) // 2))
+    return new_image
+
+
+def non_max_suppression(inputs, model_size, max_output_size,
+                        max_output_size_per_class, iou_threshold,
+                        confidence_threshold):
+    bbox, confs, class_probs = tf.split(inputs, [4, 1, -1], axis=-1)
+    bbox = bbox / model_size[0]
+    scores = confs * class_probs
+    boxes, scores, classes, valid_detections = \
+        tf.image.combined_non_max_suppression(
+            boxes=tf.reshape(bbox, (tf.shape(bbox)[0], -1, 1, 4)),
+            scores=tf.reshape(scores, (tf.shape(scores)[0], -1,
+                                       tf.shape(scores)[-1])),
+            max_output_size_per_class=max_output_size_per_class,
+            max_total_size=max_output_size,
+            iou_threshold=iou_threshold,
+            score_threshold=confidence_threshold
+        )
+    return boxes, scores, classes, valid_detections
+
+
+def resize_image(inputs, modelsize):
+    inputs = tf.image.resize(inputs, modelsize)
+    return inputs
+
+
+def load_class_names(file_name):
+    with open(file_name, 'r') as f:
+        class_names = f.read().splitlines()
+    return class_names
+
+
+def create_annotation_txt(data_frame, path):
+    df = data_frame.copy()
+    df["filename"] = path + df["filename"]
+    df[['x_min_resized',
+        'y_min_resized',
+        'x_max_resized',
+        'y_max_resized', "class_num"]] = df[['x_min_resized',
+                                             'y_min_resized',
+                                             'x_max_resized',
+                                             'y_max_resized',
+                                             "class_num"]].astype(str)
+
+    df["box"] = df.apply(lambda x: ",".join(x[['x_min_resized',
+                                               'y_min_resized',
+                                               'x_max_resized',
+                                               'y_max_resized',
+                                               "class_num"]].values), axis=1)
+
+    df_grouped = df[["filename", "box"]].groupby("filename") \
+        .agg(lambda x: " ".join(x)) \
+        .reset_index()
+    df_grouped["final_box"] = df_grouped["filename"] + " " + df_grouped["box"]
+
+    return df_grouped["final_box"]
+
+
+def output_boxes(inputs, model_size, max_output_size, max_output_size_per_class,
+                 iou_threshold, confidence_threshold):
+    center_x, center_y, width, height, confidence, classes = \
+        tf.split(inputs, [1, 1, 1, 1, 1, -1], axis=-1)
+    top_left_x = center_x - width / 2.0
+    top_left_y = center_y - height / 2.0
+    bottom_right_x = center_x + width / 2.0
+    bottom_right_y = center_y + height / 2.0
+    inputs = tf.concat([top_left_x, top_left_y, bottom_right_x,
+                        bottom_right_y, confidence, classes], axis=-1)
+    boxes_dicts = non_max_suppression(inputs, model_size, max_output_size,
+                                      max_output_size_per_class, iou_threshold, confidence_threshold)
+    return boxes_dicts
+
+
+def draw_outputs(img, boxes, objectness, classes, nums, class_names):
+    boxes, objectness, classes, nums = boxes[0], objectness[0], classes[0], nums[0]
+    boxes = np.array(boxes)
+    for i in range(nums):
+        x1y1 = tuple((boxes[i, 0:2] * [img.shape[1], img.shape[0]]).astype(np.int32))
+        x2y2 = tuple((boxes[i, 2:4] * [img.shape[1], img.shape[0]]).astype(np.int32))
+        img = cv2.rectangle(img, (x1y1), (x2y2), (255, 0, 0), 2)
+        img = cv2.putText(img, '{} {:.4f}'.format(
+            class_names[int(classes[i])], objectness[i]),
+                          (x1y1), cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 255), 2)
+    return img
+
+
+def get_initial_stage_and_epoch(weights_file_name):
+    try:
+        weights_name_words = weights_file_name.split("_")
+        train_params = weights_name_words[-2].split("-")
+        print(train_params)
+    except:
+        train_params = ["stage", 0, "epoch", 0]
+        print("Weights file name has not the requiered format.\n"
+              "Initial stage and train will be set to 0.")
+
+    print(train_params)
+    if (train_params[-2] == "epoch") & (train_params[-4] == "stage"):
+        initial_epoch = int(train_params[-1])
+        initial_stage = int(train_params[-3])
+    else:
+        print("Weights file name has not the requiered format.\n" \
+              "Initial stage and train will be set to 0.")
+        initial_epoch = 0
+        initial_stage = 0
+
+    return initial_stage, initial_epoch

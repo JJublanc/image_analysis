@@ -1,7 +1,7 @@
 import tensorflow as tf
 import sys
 sys.path.append("../")
-from utils import load_class_names, output_boxes, draw_outputs, resize_image
+from src.utils import load_class_names, output_boxes, draw_outputs, resize_image
 import cv2
 import numpy as np
 from yolov3 import YOLOv3Net
@@ -12,22 +12,22 @@ print(os.listdir())
 # assert len(physical_devices) > 0, "Not enough GPU hardware devices available"
 
 # tf.config.experimental.set_memory_growth(physical_devices[0], True)
-model_size = (416, 416,3)
+model_size = (416, 416, 3)
 num_classes = 80
-class_name = './data/data_cards/cards.names'
+class_name = './data/cards/cards.names'
 max_output_size = 40
 max_output_size_per_class= 20
 iou_threshold = 0.5
 confidence_threshold = 0.5
 cfgfile = './load_and_convert_weights/cfg/yolov3.cfg'
-weightfile = './load_and_convert_weights/weights/yolov3_weights.h5'
-image_name = "car"
+weightfile = './load_and_convert_weights/weights/yolov3_cards_weights_train_stage-1-epoch-50_.h5'
+image_name = "card_random"
 img_path = "./data/random_images"
 
 
 def main(img_path, image_name):
     model = YOLOv3Net(cfgfile,model_size,num_classes)
-    model.load_weights(weightfile)
+    model.load_weights(weightfile, by_name=True, skip_mismatch=True)
     class_names = load_class_names(class_name)
     image = cv2.imread(os.path.join(img_path, "{}.jpg".format(image_name)))
     image = np.array(image)
@@ -42,6 +42,7 @@ def main(img_path, image_name):
         confidence_threshold=confidence_threshold)
     image = np.squeeze(image)
     img = draw_outputs(image, boxes, scores, classes, nums, class_names)
+    print(pred.shape)
     # win_name = 'Image detection'
     # cv2.imshow(win_name, img)
     # time.sleep(20)

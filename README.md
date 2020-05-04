@@ -34,7 +34,7 @@ This will save the weights under `load_and_convert_weights/weights/yolov3_weight
 
 
 ## 2- Download and prepare data
-[Data](https://www.kaggle.com/hugopaigneau/playing-cards-dataset) are to be loaded in the following folder: `data/data_cards`. Make sure you download both csv label files and zipped file
+[Data](https://www.kaggle.com/hugopaigneau/playing-cards-dataset) are to be loaded in the following folder: `data/cards`. Make sure you download both csv label files and zipped file
 
 (Reminder: you can download using kaggle api: `kaggle datasets dowload -d hugopaigneau/playing-ca`)
 

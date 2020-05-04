@@ -1,5 +1,6 @@
 import numpy as np
 import sys
+
 sys.path.append("./")
 from load_and_convert_weights.yolov3 import YOLOv3Net
 from load_and_convert_weights.yolov3 import parse_cfg
@@ -44,19 +45,22 @@ def load_weights(model, cfgfile, weightfile):
     fp.close()
 
 
-def main():
+def main(num_classes=52,
+         filepath='./load_and_convert_weights/weights/yolov3_cards_weights_train_stage-0-epoch-0_.h5'):
     weightfile = "./load_and_convert_weights/weights/yolov3.weights"
     cfgfile = "./load_and_convert_weights/cfg/yolov3.cfg"
     model_size = (416, 416, 3)
-    num_classes = 52
-    model = YOLOv3Net(cfgfile,model_size,num_classes)
-    load_weights(model,cfgfile,weightfile)
+
+    model = YOLOv3Net(cfgfile, model_size, num_classes)
+    load_weights(model, cfgfile, weightfile)
     try:
-        model.save_weights('./load_and_convert_weights/weights/yolov3_weights.h5')
-        print('\nThe file \'yolov3_weights.h5\' has been saved successfully.')
+        model.save_weights(filepath=filepath)
+        print('\nThe file \'{}\' has been saved successfully.'.format(filepath))
     except IOError:
         print("Couldn't write the file \'yolov3_weights.tf\'.")
 
 
 if __name__ == '__main__':
-    main()
+    num_class = int(sys.argv[1])
+    filepath = sys.argv[2]
+    main(num_class, filepath)

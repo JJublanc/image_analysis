@@ -124,5 +124,3 @@ def YOLOv3Net(cfgfile, model_size, num_classes):
     model.summary()
     return model
 
-
-

@@ -1,50 +1,39 @@
-from functools import wraps
 import numpy as np
-import tensorflow as tf
-from tensorflow.keras import backend as K
-from tensorflow.keras.layers import Conv2D, Add, ZeroPadding2D, UpSampling2D, Concatenate, MaxPooling2D
-from tensorflow.keras.layers import LeakyReLU
-from tensorflow.keras.layers import BatchNormalization
-from tensorflow.keras.models import Model
-from tensorflow.keras.regularizers import l2
-from utils import load_class_names
-from utils import compose
+from src.utils import load_class_names
 import os
 import pandas as pd
 import zipfile
 
 def unzip_folder():
-    directory_to_extract_to = "data/data_cards"
-    path_to_zip_file = "data/data_cards/playing-cards-dataset.zip"
+    directory_to_extract_to = "data/cards"
+    path_to_zip_file = "data/cards/playing-cards-dataset.zip"
     with zipfile.ZipFile(path_to_zip_file, 'r') as zip_ref:
         zip_ref.extractall(directory_to_extract_to)
-    os.rename("data/data_cards/train_zipped", "data/data_cards/train")
-    os.rename("data/data_cards/test_zipped", "data/data_cards/test")
-    os.remove("data/data_cards/playing-cards-dataset.zip")
+    os.rename("data/cards/train_zipped", "data/cards/train")
+    os.rename("data/cards/test_zipped", "data/cards/test")
+    os.remove("data/cards/playing-cards-dataset.zip")
 
 def unzip_data(data_kind="test"):
 
-    directory_to_extract_to = "data/data_cards/{}".format(data_kind)
-    path_to_zip_file = "data/data_cards/{}_zipped.zip".format(data_kind)
+    directory_to_extract_to = "data/cards/{}".format(data_kind)
+    path_to_zip_file = "data/cards/{}_zipped.zip".format(data_kind)
     try:
         os.mkdir(directory_to_extract_to)
     except:
         print("diretory already exists")
         pass
 
-    if len(os.listdir("data/data_cards/{}".format(data_kind))) != 0:
+    if len(os.listdir("data/cards/{}".format(data_kind))) != 0:
         print("{} data are already unzipped".format(data_kind))
     else:
-        directory_to_extract_to = "data/data_cards/{}".format(data_kind)
-        path_to_zip_file = "data/data_cards/{}_zipped.zip".format(data_kind)
+        directory_to_extract_to = "data/cards/{}".format(data_kind)
+        path_to_zip_file = "data/cards/{}_zipped.zip".format(data_kind)
 
         with zipfile.ZipFile(path_to_zip_file, 'r') as zip_ref:
             zip_ref.extractall(directory_to_extract_to)
 
-
-
 def get_card_num(card):
-    cards = load_class_names("data/data_cards/cards.names")
+    cards = load_class_names("data/cards/cards.names")
     cards_serie = pd.Series(cards)
     return cards_serie[cards_serie==card].index[0]
 
@@ -75,11 +64,11 @@ def resize_and_add_class_num(df):
 
 
 def save_csv_resized_class_num(data_kind):
-    df = pd.read_csv("./data/data_cards/{}_cards_label.csv".format(data_kind), nrows=5)
+    df = pd.read_csv("./data/cards/{}_cards_label.csv".format(data_kind), nrows=5)
     if len(df.columns) < 13:
-        df = pd.read_csv("./data/data_cards/{}_cards_label.csv".format(data_kind))
+        df = pd.read_csv("./data/cards/{}_cards_label.csv".format(data_kind))
         df = resize_and_add_class_num(df)
-        df.to_csv("./data/data_cards/{}_cards_label.csv".format(data_kind))
+        df.to_csv("./data/cards/{}_cards_label.csv".format(data_kind))
 
 
 def preprocess_true_boxes(true_boxes, input_shape, anchors, num_classes):
